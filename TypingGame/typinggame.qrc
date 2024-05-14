@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>image/bcg.png</file>
+        <file>audio/niganma.wav</file>
+        <file>audio/gin.wav</file>
+        <file>audio/bgm.wav</file>
     </qresource>
 </RCC>
