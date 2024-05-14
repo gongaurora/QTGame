@@ -1,5 +1,11 @@
 <RCC>
     <qresource prefix="/">
         <file>image/bcg.png</file>
+        <file>audio/niganma.wav</file>
+        <file>audio/gin.wav</file>
+        <file>audio/bgm.wav</file>
+        <file>image/chicken.png</file>
+        <file>image/kun.png</file>
+        <file>image/basketball.png</file>
     </qresource>
 </RCC>

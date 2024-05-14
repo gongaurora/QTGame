@@ -5,13 +5,13 @@
 
 CharItem::CharItem(QGraphicsItem *parent ) :
     QGraphicsItem(parent),
-    speed(2.8), // 初始化速度为2.8
-    size(48),   // 初始化大小为48
-    colorBackground(Qt::yellow), // 设置背景颜色为黄色
+    size(48), // 初始化速度为2.8
+    speed(2.8),   // 初始化大小为48
     colorChar(Qt::darkGray),     // 设置字符颜色为深灰色
     colorFrame(Qt::black)        // 设置边框颜色为黑色
 {
     key = rand() % 26 + 0x41; // 生成一个随机字符，ASCII码范围为0x41到0x5A（A到Z）
+    backgroundPixmap.load(":/image/basketball.png"); // 加载篮球图像
 }
 
 QRectF CharItem::boundingRect() const
@@ -30,11 +30,10 @@ void CharItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
 {
     // Frame
     painter->setBrush(colorFrame); // 设置画刷颜色为边框颜色
-    painter->drawRoundedRect(boundingRect(), size*0.125, size*0.125); // 绘制圆角矩形边框
+    painter->drawEllipse(boundingRect()); // 绘制圆形边框
 
     // Background
-    painter->setBrush(colorBackground); // 设置画刷颜色为背景颜色
-    painter->drawRoundedRect(-size*0.475, -size*0.475, size*0.95, size*0.95, size*0.118, size*0.118); // 绘制圆角矩形背景
+    painter->drawPixmap(boundingRect().toRect(), backgroundPixmap); // 绘制篮球图像
 
     // Text
     QFont font("Arial", size*0.56); // 设置字体为Arial，大小为size*0.56

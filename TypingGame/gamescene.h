@@ -11,21 +11,39 @@ class GameScene : public QGraphicsScene
     Q_OBJECT
 
 public:
+    // 构造函数，创建游戏场景对象
     GameScene(QObject *parent = nullptr);
+
+    // 析构函数，释放游戏场景对象
     ~GameScene();
 
 public slots:
+    //爆炸特效函数
+    void showExplosionEffect(const QPoint &position);
+    // 游戏开始槽函数，处理游戏开始逻辑
     void gameStart();
+
+    // 游戏升级槽函数，处理游戏升级逻辑
     void gameLevelUp();
+
+    // 游戏结束槽函数，处理游戏结束逻辑
     void gameOver();
+
+    // 游戏暂停槽函数，处理游戏暂停逻辑
     void gamePause();
+
+    // 添加新字符项槽函数，用于在游戏中添加新的字符项
     void addNewCharItem();
+
+    // 更新分数槽函数，用于更新游戏分数显示
     void updateScore();
+
+    // 游戏进展函数，处理游戏的每一帧逻辑
     void advance();
 
 protected:
+    // 键盘按下事件处理函数，处理用户按键输入
     void keyPressEvent(QKeyEvent *keyEvent);
-
 private:
     // 场景默认大小
     QSize size;
@@ -37,7 +55,7 @@ private:
     QGraphicsSimpleTextItem tipItem;
 
     // 字母Item表
-    QList<CharItem *> charItemList;
+    QList<CharItem *> charItemList;//这里注意是类指针类型的数组，迭代器返回还有用->来调用成员
 
     // 落字母定时器
     Timer timerDown;
