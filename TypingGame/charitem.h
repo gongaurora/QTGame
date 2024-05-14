@@ -20,6 +20,7 @@ protected:
     void advance(int step) override;  // 重写advance函数，处理项的移动逻辑
 
 private:
+    QPixmap backgroundPixmap; // 新的成员变量来存储图像
     int key;  // 项对应的键值
     int size;  // 项的尺寸
     qreal speed;  // 项的移动速度
