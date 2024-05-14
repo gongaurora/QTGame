@@ -1,8 +1,11 @@
 ﻿#include <ctime>
 #include "gamescene.h"
 #include <QApplication>
+#include <QMediaPlayer>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QSoundEffect>
 
 GameScene::GameScene(QObject *parent) :
     QGraphicsScene(parent),
@@ -57,40 +60,48 @@ GameScene::~GameScene()
 
 void GameScene::gameStart()
 {
+    // 如果游戏已经开始，恢复计时器并返回
     if (flag == 1) {
         timerDown.resume();
         timerUpdate.resume();
         return;
     }
 
+    // 如果游戏是初始状态或结束状态，重新初始化游戏参数
     if (flag == 0 || flag == -1) {
-        flag = 1;
-        level = 1;
-        score = 0;
-        miss = 0;
-        itemSpeed = 3;
+        flag = 1;                               // 设置游戏状态为开始
+        level = 1;                              // 设置等级为1
+        score = 0;                              // 设置分数为0
+        miss = 0;                               // 设置错过数量为0
+        itemSpeed = 3;                          // 设置物品速度
 
-        charNum = 60;
-        charNumAppeared = 0;
-        timeDown = 60000 / (40+20*level);
-        itemSpeed = 3 * timeDown;
+        charNum = 60;                           // 设置字符数量
+        charNumAppeared = 0;                    // 设置已出现字符数量为0
+        timeDown = 60000 / (40 + 20 * level);   // 设置倒计时时间
+        itemSpeed = 3 * timeDown;               // 设置物品速度
 
+        // 清空已生成的字符物品列表
         qDeleteAll(charItemList);
         charItemList.clear();
     }
+    // 如果游戏处于暂停状态，重新开始游戏
     else if (flag == 2) {
-        flag = 1;
-        qDeleteAll(charItemList);
+        flag = 1;                               // 设置游戏状态为开始
+        qDeleteAll(charItemList);               // 清空已生成的字符物品列表
         charItemList.clear();
     }
 
+    // 启动倒计时和更新计时器
     timerDown.start(timeDown);
     timerUpdate.start(timeUpdate);
 
+    // 隐藏等级显示
     levelItem.hide();
 
+    // 更新分数显示
     updateScore();
 
+    // 显示提示信息
     tipItem.setText("Press Space to pause or resume. Press ESC to quit.");
     tipItem.setPos(10, size.height() - tipItem.boundingRect().height() * 1.25);
     tipItem.show();
@@ -128,16 +139,20 @@ void GameScene::gameLevelUp()
 
 void GameScene::gameOver()
 {
+    // 停止倒计时和更新计时器
     timerDown.stop();
     timerUpdate.stop();
 
+    // 设置游戏状态为结束
     flag = -1;
 
+    // 显示游戏结束信息和分数
     levelItem.setText(QString("Game Over!  Your score: %1").arg(score));
-    levelItem.setPos((size.width() - levelItem.boundingRect().width())*0.5,
-                     (size.height() - levelItem.boundingRect().height())*0.5);
+    levelItem.setPos((size.width() - levelItem.boundingRect().width()) * 0.5,
+                     (size.height() - levelItem.boundingRect().height()) * 0.5);
     levelItem.show();
 
+    // 显示重新开始和退出游戏提示信息
     tipItem.setText("Press ENTER to restart, or ESC to quit.");
     tipItem.setPos(levelItem.x() + (levelItem.boundingRect().width() - tipItem.boundingRect().width()) * 0.5,
                    levelItem.y() + levelItem.boundingRect().height() + tipItem.boundingRect().height() * 0.25);
@@ -153,35 +168,43 @@ void GameScene::gamePause()
 void GameScene::keyPressEvent(QKeyEvent *keyEvent)
 {
     switch (keyEvent->key()) {
+    // 处理回车键或者Enter键，开始游戏
     case Qt::Key_Return:
     case Qt::Key_Enter:
         gameStart();
         break;
 
+        // 处理空格键，暂停或者恢复游戏
     case Qt::Key_Space:
-        if (flag != 1)
+        if (flag != 1) // 如果游戏未开始，直接返回
             break;
-        if (timerUpdate.isActive())
+        if (timerUpdate.isActive()) // 如果计时器正在运行，暂停游戏；否则，开始游戏
             gamePause();
         else
             gameStart();
         break;
 
+        // 处理ESC键，退出游戏
     case Qt::Key_Escape:
-        QApplication *app;
-        app->quit();
+        QApplication::quit();
         break;
 
+        // 处理其他按键
     default:
-        if (timerUpdate.isActive()) {
+        if (timerUpdate.isActive()) { // 如果游戏正在进行
             auto i = charItemList.begin();
+            QSoundEffect *soundEffect = new QSoundEffect;
             while (i != charItemList.end()) {
-                if (keyEvent->key() == (*i)->getKey()) {
-                    delete *i;
-                    charItemList.erase(i);
-                    score++;
-                    updateScore();
-                    keyEvent->accept();
+                if (keyEvent->key() == (*i)->getKey()) { // 检查按下的键是否与当前字符匹配
+                    delete *i; // 删除匹配的字符
+                    charItemList.erase(i); // 从列表中移除字符
+                    score++; // 增加分数
+                    //彩蛋
+                    soundEffect->setSource(QUrl("qrc:/audio/gin.wav"));
+                    soundEffect->setVolume(1.0);
+                    soundEffect->play();
+                    updateScore(); // 更新分数显示
+                    keyEvent->accept(); // 接受按键事件
                     return;
                 }
                 else
@@ -193,9 +216,11 @@ void GameScene::keyPressEvent(QKeyEvent *keyEvent)
 
 void GameScene::addNewCharItem()
 {
+    // 检查是否已经出现了足够数量的字符，如果是则停止倒计时
     if (charNumAppeared >= charNum)
         timerDown.stop();
     else {
+        // 创建新的字符项并设置其位置
         CharItem *item = new CharItem;
         int x = rand() % (size.width() - item->getSize()) + item->getSize() / 2;
         item->setPos(x, 0);
@@ -207,30 +232,43 @@ void GameScene::addNewCharItem()
 
 void GameScene::updateScore()
 {
+    // 更新分数显示
     scoreItem.setText(QString("level : %1   score: %2    miss: %3").arg(level).arg(score).arg(miss));
 }
 
 void GameScene::advance()
 {
+    // 调用父类的advance()函数
     QGraphicsScene::advance();
+
+    // 检查字符项是否超出了屏幕范围，如果是则删除并增加miss计数
     auto i = charItemList.begin();
+    QSoundEffect *soundEffect = new QSoundEffect;
     while (i != charItemList.end()) {
         if ((*i)->pos().ry() >= height()) {
             delete *i;
             charItemList.erase(i++);
             miss++;
+
+            //彩蛋
+            soundEffect->setSource(QUrl("qrc:/audio/niganma.wav"));
+            soundEffect->setVolume(1.0);
+            soundEffect->play();
+
+
             updateScore();
         }
         else
             i++;
     }
 
+    // 如果miss次数达到10次，游戏结束
     if (miss >= 10) {
         gameOver();
         return;
     }
 
-    // 过关
+    // 如果倒计时停止且字符项为空，则过关
     if (!timerDown.isActive() && charItemList.isEmpty()) {
         gameLevelUp();
     }
